@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.Excersices" parent="Theme.AppCompat.NoActionBar">
+
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="android:textColorPrimary">@color/white</item>
+    </style>
+
+    <style name="Circular">
+        <item name="cornerSize">50%</item>
+    </style>
+</resources>
