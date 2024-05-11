@@ -27,6 +27,9 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -40,106 +43,135 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.excersices.ui.theme.ExcersicesTheme
+import kotlinx.coroutines.Dispatchers
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import coil.compose.AsyncImage
+import coil.request.ImageRequest
+import kotlinx.coroutines.withContext
 
 class ExcersiseActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
         setContent {
-            Column {
-                Box(modifier = Modifier.height(300.dp)) {
+            AppContent()
+        }
+    }
+}
+
+@Composable
+fun AppContent() {
+
+    var photo by remember { mutableStateOf<Unsplash?>(null) }
+    LaunchedEffect(key1 = Unit) {
+        val photoFromApi = withContext(Dispatchers.IO) {
+            getRandomPhoto() // Assuming this function performs the API call
+        }
+        photo = photoFromApi
+    }
+
+    Column {
+        Box(modifier = Modifier.height(300.dp)) {
+            AsyncImage(
+                model = ImageRequest.Builder(LocalContext.current)
+                    .data(photo?.url)
+                    .addHeader("Authorization", "Client-ID 2k7FU31RiDWg5u6mJ2SRgg-ljyb6Y_5RiOPmICzaisg")
+                    .build(),
+                contentDescription = "Photo",
+                modifier = Modifier
+                    .fillMaxSize(),
+                contentScale = ContentScale.Crop
+            )
+
+            if (photo?.location != "null") {
+                Row(
+                    modifier = Modifier
+                        .align(Alignment.BottomStart)
+                        .padding(20.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
                     Image(
-                        painter = painterResource(id = R.drawable.bg_image),
+                        painter = painterResource(id = R.drawable.location),
                         contentDescription = null,
                         modifier = Modifier
-                            .fillMaxSize(),
-                        contentScale = ContentScale.Crop
+                            .size(30.dp)
+                            .padding(end = 8.dp)
                     )
 
-                    Row(
-                        modifier = Modifier
-                            .align(Alignment.BottomStart)
-                            .padding(20.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Image(
-                            painter = painterResource(id = R.drawable.location),
-                            contentDescription = null,
-                            modifier = Modifier
-                                .size(30.dp)
-                                .padding(end = 8.dp)
-                        )
-
-                        Text(
-                            text = "Barcelona, Spain",
-                            color = Color.White,
-                            fontWeight = FontWeight.Bold,
-                            fontSize = 20.sp,
-                        )
-                    }
+                    Text(
+                        text = photo?.location ?: "",
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp,
+                    )
                 }
-                Column (
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(20.dp)
-                ){
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(60.dp),
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            ProfilePicture(
-                                painter = painterResource(id = R.drawable.pfp),
-                                modifier = Modifier.size(40.dp),
-                                contentDescription = "Profile Picture"
-                            )
-                            Spacer(modifier = Modifier.width(10.dp))
-                            Text(
-                                text = "Biel Morro",
-                                color = Color.White,
+            }
+        }
+        Column (
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(20.dp)
+        ){
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    ProfilePicture(
+                        painter = painterResource(id = R.drawable.pfp),
+                        modifier = Modifier.size(40.dp),
+                        contentDescription = "Profile Picture"
+                    )
+                    Spacer(modifier = Modifier.width(10.dp))
+                    Text(
+                        text = photo?.user ?: "",
+                        color = Color.White,
 //                            style = MaterialTheme.typography.body1,
-                                fontWeight = FontWeight.Bold
-                            )
-                        }
+                        fontWeight = FontWeight.Bold
+                    )
+                }
 
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            IconButton(
-                                painter = painterResource(id = R.drawable.download),
-                            )
-                            IconButton(
-                                painter = painterResource(id = R.drawable.favorite),
-                            )
-                            IconButton(
-                                painter = painterResource(id = R.drawable.bookmark),
-                            )
-                        }
-                    }
-                    Divider(color = Color.Gray, thickness = 1.dp)
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        painter = painterResource(id = R.drawable.download),
+                    )
+                    IconButton(
+                        painter = painterResource(id = R.drawable.favorite),
+                    )
+                    IconButton(
+                        painter = painterResource(id = R.drawable.bookmark),
+                    )
+                }
+            }
+            Divider(color = Color.Gray, thickness = 1.dp)
 
-                    ComposeGridLayout()
+            ComposeGridLayout(photo)
 
-                    Divider(color = Color.Gray, thickness = 1.dp)
+            Divider(color = Color.Gray, thickness = 1.dp)
 
-                    StatsLinearLayout()
+            StatsLinearLayout(photo)
 
-                    Divider(color = Color.Gray, thickness = 1.dp)
+            Divider(color = Color.Gray, thickness = 1.dp)
 
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(10.dp),
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        RoundOutlineTextView("barcelona")
-                        Spacer(modifier = Modifier.width(10.dp))
-                        RoundOutlineTextView("spain")
-                    }
+            if (photo?.city != "null") {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(10.dp),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    RoundOutlineTextView(photo?.city ?: "")
+                    Spacer(modifier = Modifier.width(10.dp))
+                    RoundOutlineTextView(photo?.country ?: "")
                 }
             }
         }
@@ -174,15 +206,15 @@ fun IconButton(
 }
 
 @Composable
-fun ComposeGridLayout() {
+fun ComposeGridLayout(photo: Unsplash?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .padding(10.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        GridLayoutItem("Camera", "NIKON D3200")
-        GridLayoutItem("Aperture", "f/5.0")
+        GridLayoutItem("Camera", photo?.camera ?: "")
+        GridLayoutItem("Aperture", photo?.aperture ?: "")
     }
     Row(
         modifier = Modifier
@@ -190,7 +222,7 @@ fun ComposeGridLayout() {
             .padding(10.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        GridLayoutItem("Focal Length", "18.0mm")
+        GridLayoutItem("Focal Length", photo?.focalLength ?: "")
         GridLayoutItem("Shutter Speed", "1/125s")
     }
     Row(
@@ -199,8 +231,8 @@ fun ComposeGridLayout() {
             .padding(10.dp),
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        GridLayoutItem("ISO", "100")
-        GridLayoutItem("Dimensions", "3906 x 4882")
+        GridLayoutItem("ISO", photo?.iso.toString())
+        GridLayoutItem("Dimensions", "${photo?.width} x ${photo?.height}")
     }
 }
 
@@ -224,7 +256,7 @@ fun GridLayoutItem(label: String, value: String) {
 }
 
 @Composable
-fun StatsLinearLayout() {
+fun StatsLinearLayout(photo: Unsplash?) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -233,15 +265,18 @@ fun StatsLinearLayout() {
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceEvenly
     ) {
-        LinearLayoutItem("Views", "8.8M")
-        LinearLayoutItem("Downloads", "99.1K")
-        LinearLayoutItem("Likes", "1.8K")
+        LinearLayoutItem("Views", "1.2M")
+        LinearLayoutItem("Downloads", photo?.downloads.toString())
+        LinearLayoutItem("Likes", photo?.likes.toString())
     }
 }
 
 @Composable
 fun LinearLayoutItem(label: String, value: String) {
-    Column {
+    Column (
+        modifier = Modifier.wrapContentWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ){
         Text(
             text = label,
             color = Color.White,
@@ -271,8 +306,7 @@ fun RoundOutlineTextView(text: String) {
         Text(
             text = text,
             modifier = Modifier
-                .width(60.dp)
-                .height(20.dp),
+                .padding(3.dp),
             color = Color.White,
             fontSize = 11.sp,
             style = androidx.compose.ui.text.TextStyle(fontWeight = FontWeight.Bold),
